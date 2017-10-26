@@ -1,0 +1,1476 @@
+<html>
+    <head>
+        <title>ringID Live</title>
+        <meta charset="utf-8">
+        <meta property="og:site_name" content="ringID">
+        <meta property="og:title" content="ringID Live">
+        <!-- <meta property="og:description" content="${uname} is live on ringID"> -->
+        <!-- <meta property="og:image" content="https://imagesres.ringid.com/${img}"> -->
+        <!-- <meta property="al:ios:url" content="ringid://liveShare?utId=${uId}&streamId=${streamId}&rmid=${rmid}" /> -->
+        <meta property="al:ios:app_store_id" content="925330759" />
+        <meta property="al:ios:app_name" content="ringID" />
+        <!-- <meta property="al:android:url" content="ringid://liveShare?utId=${uId}&streamId=${streamId}&rmid=${rmid}" /> -->
+        <meta property="al:android:app_name" content="ringID" />
+        <meta property="al:android:package" content="com.ringid.ring" />
+        <meta property="al:web:url" content="https://www.ringid.com" />
+        <meta name="twitter:title" content="ringID Live">
+        <!-- <meta name="twitter:description" content="${uname} is live on ringID"> -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@ringidapp">
+        <meta name="twitter:creator" content="@ringidapp">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="language" content="EN">
+        <meta name="title" content="ringID Live">
+        <meta name="keywords" content="ringID Social App, ringID media Cloud">
+        <meta name="robots" content="all,index,follow">
+        <meta name="distribution" content="Global">
+        <meta name="rating" content="Safe For Kids">
+
+        <base href="/" />
+    </head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+    <script type="text/javascript">
+        window.isActive = true;
+        $(window).focus(function () {
+            this.isActive = true;
+            /* console.log("window is Active fired"); */
+        });
+        $(window).blur(function () {
+            this.isActive = false;
+            /* console.log("window is Blur fired"); */
+        });
+    </script>
+    <script type="text/javascript">
+        var streamId, // = "${streamId}";
+            uId, // = "${uId}";
+            utId, // = "${utId}";
+            pType, // = "${pType}";
+            roomId, // = "${rmid}";
+
+            uname, // = "${uname}",
+            img, // = "${img}",
+            imageUrl = '', // = '##IMAGE_SERVER##/' + img,
+            viewers, // = "${viewers}"
+            country, // = ${country}
+            allParams,
+
+            imageBase = '##IMAGE_SERVER##/',
+            userAgent = navigator.userAgent || navigator.vendor || window.opera,
+            isClickedFlag = false,
+            isLoaderShow = false;
+            tempVideoTime = 0;
+
+        var timeoutSetter = false;
+
+        function getUrlParams(url) {
+            var keyPairs = {},
+                allParams,
+                params,
+                i,
+                splitUrl = url.split('?')[1];
+
+            if (splitUrl) {
+                allParams = splitUrl.split('&');
+                for (i = 0; i < allParams.length; i++) {
+                    params = allParams[i].split('=');
+                    keyPairs[params[0]] = decodeURIComponent(params[1].replace(/\+/g, " ")); // params[1];
+                }
+            }
+
+            return keyPairs;
+        }
+
+        function getImage(imgSrc) {
+            var position,
+                prefix = 'p600', // using p600 images
+                fullImgUrl;
+
+            position = imgSrc.lastIndexOf('/') + 1;
+            fullImageUrl = [imageBase, imgSrc.slice(0, position), prefix, imgSrc.slice(position)].join('');
+
+            return fullImageUrl;
+        }
+
+        allParams = getUrlParams(window.location.href);
+        streamId = allParams.streamId;
+        uId = allParams.uId;
+        utId = allParams.utId;
+        pType = allParams.pType;
+        roomId = allParams.roomId;
+        uname = allParams.uname;
+        img = allParams.img;
+        imageUrl = img && getImage(img);
+        viewers = allParams.viewers;
+        country = allParams.country;
+
+        /* function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+            if (!results)
+                return null;
+            if (!results[2])
+                return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        } */
+
+        function redirect() {
+            var uid = uId;
+
+            if (userAgent.match(/Windows Phone/i) || userAgent.match(/IEMobile/i)) {
+                window.location = 'https://www.windowsphone.com/s?appid=7e163976-45c6-4bd6-b64c-24639d44193a';
+            } else if (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i)) {
+                window.location = 'https://itunes.apple.com/us/app/ringid/id925330759?mt=8';
+            } else if (userAgent.match(/Android/i)) {
+                window.location = 'https://play.google.com/store/apps/details?id=com.ringid.ring';
+            } else {
+                if (parseInt(pType) === 10) {
+                    // celebrity
+                    window.location = 'https://www.ringid.com/celebrity/' + utId;
+                } else {
+                    window.location = 'https://www.ringid.com/profile/' + uid;
+                }
+            }
+            //timeoutSetter = false;
+        }
+
+        function isMobileDevice() {
+            return !!(userAgent.match(/Windows Phone/i) || userAgent.match(/IEMobile/i) || userAgent.match(/Android/i) || userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i));
+        }
+
+        function goToApp() {
+            var oldTime = Date.now();
+
+            timeoutSetter = setTimeout(function () {
+                if (Date.now() - oldTime > 200) {
+                    return;
+                }
+
+                if (window.isActive) {
+                    redirect();
+                }
+            }, 150);
+
+            if (isMobileDevice()) {
+                window.location = 'ringid://liveShare?utId=' + utId + '&streamId=' + streamId + '&rmid=' + roomId;
+            } else {
+                redirect();
+            }
+
+            /* function elementOnBulr() {
+               if (timeoutSetter) {
+               clearTimeout(timeoutSetter);
+               timeoutSetter = false;
+               }
+               target.removeEventListener("blur", elementOnBulr);
+               document.removeEventListener("visibilitychange", elementOnBulr);
+               }
+               target.addEventListener("blur", elementOnBulr);
+               document.addEventListener("visibilitychange", elementOnBulr);
+             */
+
+        }
+</script>
+<style>
+    /* .off-for-desktop{display:none;} */
+    /*.header-bg.off-for-mobile{background-color: transparent;margin-top: 50px;margin-left: 50px;height:auto;}*/
+    .cp{cursor: pointer;}
+    .livepad{padding:10px 0;}
+    .livepads{padding:5px 0;}
+    .bg-image{background-size: cover;margin:0;padding:0;font-family:helvetica, arial, sans-serif;}
+    .bgopacity{background-color:rgba(0,0,0,0.9);width:100%;height:100%;text-align:center;display:inline-grid;padding: 50px 0; box-sizing: border-box;}
+    .content-wrapper{display: table-cell;vertical-align: middle;}
+    .livestatus{font-size: 30px;color:#fff;}
+    .timestatus{font-size:16px;color:#eee;}
+    .timestatus img{margin-right:10px;vertical-align: text-top;}
+    .user-picture{width:100px;height:100px;border-radius: 100%;background-size: cover; background-position: center; display: inline-block;margin:20px 0;text-decoration: none; border: 1px solid #191919;}
+    .btext{font-size:20px;color:#fff;text-decoration: none;}
+    .logo{float:left;width:100px;margin:7px 10px 7px 0;}
+    .right{float: right;}
+    .left{float:left;}
+    .embed-btn{
+        padding: 7px 15px;
+        border-radius: 40px;
+        display: inline-block;
+        font-size: 14px;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        margin: 11px 10px 12px 0;
+        background: #f16f5c;
+        background: -moz-linear-gradient(left, #f16f5c 0%, #ff2600 0%, #ff6200 50%, #f47627 100%);
+        background: -webkit-gradient(left top, right top, color-stop(0%, #f16f5c), color-stop(0%, #ff2600), color-stop(50%, #ff6200), color-stop(100%, #f47627));
+        background: -webkit-linear-gradient(left, #f16f5c 0%, #ff2600 0%, #ff6200 50%, #f47627 100%);
+        background: -o-linear-gradient(left, #f16f5c 0%, #ff2600 0%, #ff6200 50%, #f47627 100%);
+        background: -ms-linear-gradient(left, #f16f5c 0%, #ff2600 0%, #ff6200 50%, #f47627 100%);
+        background: linear-gradient(to right, #f16f5c 0%, #ff2600 0%, #ff6200 50%, #f47627 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f16f5c', endColorstr='#f47627', GradientType=1 );
+        border: 0 !important;
+    }
+            .t0{top:0;}
+            .b0{bottom:0;}
+            .header-bg{
+              background-color: #1d1d1d;
+              height: 50px;
+              position: fixed;
+              width: 100%;
+            }
+            .appdownload{
+              width: 265px;
+              position: absolute;
+              bottom: 60px;
+              right: 5px;
+            }
+            .appdownload h1{
+                font-size: 16px;
+                font-weight: normal;
+                margin:10px 0 22px 0;
+                text-align: left;
+                color: #fff;
+            }
+            .ring-color{color:#f47727;}
+            ul.getapp{margin:0;padding:0;}
+            ul.getapp li:first-child{border-left: 1px solid #cedce2;}
+            ul.getapp li{
+                list-style: none;
+                margin: 0;
+                height: 30px;
+                width: 30px;
+                padding: 10px;
+                float: left;
+                border-right: 1px solid #cedce2;
+                border-bottom: 1px solid #cedce2;
+                border-top: 1px solid #cedce2;
+                background-color: transparent;;
+            }
+            ul.getapp li:hover{background-color:#f47727;}
+            .ico-sprite{background-image: url('images/ring-live/ico-sprite.png');width: 80px;height: 80px;display: block;}
+            .arrow-down {
+                background-image: url('images/ring-live/arrow_h.png');
+                background-repeat: no-repeat;
+                height: 9px;
+                width: 18px;
+                display: inline-block;
+                margin-top: -2px;
+                margin-left: 8px;
+                display: inline-block;
+            }
+            .action-txt-left{text-align:left;position: relative;width: 130px;height: 52px;}
+            .action-txt-left .appdownload{display:none;}
+            .d-all a{
+                margin: 5px 5px;
+                display: inline-block;
+                border: 1px solid transparent;
+            }
+            .d-all a:hover{
+                border: 1px solid #f47727;
+            }
+
+            .lp-up {
+                width: 36px;
+                height: 36px;
+                border-radius: 100%;
+                background-size: cover;
+                display: inline-block;
+                margin: 8px 10px;
+                text-decoration: none;
+                float: left;
+                box-sizing: border-box;
+                background: #ededed;
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center center;
+
+            }
+            .lp-uinfo{
+                display: inline-block;
+                margin: 15px 10px 0 0;
+                float: left;
+                box-sizing: border-box;
+            }
+            .lp-uinfo p{
+                font-size: .8em;
+                margin: 0;
+                line-height: 1.5em;
+                color: #fff;
+                height: 1.5em;
+                text-align: left;
+            }
+            .lp-live{
+              max-width: 600px;
+              height: 100%;
+              background-size: cover;
+              background-repeat: no-repeat;
+              background-position: center center;
+              position: relative;
+              margin: auto;
+              overflow: hidden;
+            }
+            .lp-commsec{
+                height: 50px;
+                width: 600px;
+                bottom: 0;
+                left: 50%;
+                margin-left: -300px;
+                position: absolute;
+                padding: 10px;
+                box-sizing: border-box;
+                z-index: 1;
+                display: none;
+            }
+            .lp-csib {
+              width: calc(100% - 160px);
+              border-radius: 20px;
+              height: 30px;
+              background: rgba(66, 66, 66, 0.55);
+              display: inline-block;
+              vertical-align: top;
+              cursor: pointer;
+              border: 1px solid #424242;
+            }
+            .lp-csib .say-hello {
+                width: calc(100% - 50px);
+                border: none;
+                font-size: 14px;
+                color: #fff;
+                text-align: left;
+                float: left;
+                /* margin-right: 5px; */
+                margin: 7px 0 7px 10px;
+                height: 16px;
+                background: none;
+                padding-left: 15px;
+                box-sizing: border-box;
+            }
+            .lp-csib .cmnico {
+                width: 20px;
+                height: 20px;
+                float: right;
+                margin: 5px 8px;
+                box-sizing: border-box;
+                /* background: rgba(0, 0, 0, 0.75); */
+            }
+            .lp-gift {
+              width: 30px;
+              height: 30px;
+              background: rgba(66, 66, 66, 0.55);
+              border-radius: 50%;
+              display: inline-block;
+              cursor: pointer;
+            }
+            input::placeholder {
+                color: #fff;
+            }
+            input:focus {
+                outline: none;
+            }
+
+            /* START LIVE ANIMATION */
+            body{
+              background-color: black;
+            }
+            .live-wrap{
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0px;
+                right: 0px;
+                display: none;
+            }
+
+            .poster {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                right: 100%;
+            }
+
+            .poster img {
+                max-width: 100%;
+                max-height: 60%;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                -webkit-transform: translate(-50%, -50%);
+                -moz-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+                opacity: 0.5;
+            }
+
+            .lv {
+                -webkit-animation-iteration-count: infinite;
+                -moz-animation-iteration-count: infinite;
+                -ms-animation-iteration-count: infinite;
+                -o-animation-iteration-count: infinite;
+                animation-iteration-count: infinite;
+                -webkit-transform-style: preserve-3d;
+                -moz-transform-style: preserve-3d;
+                -ms-transform-style: preserve-3d;
+                -o-transform-style: preserve-3d;
+                transform-style: preserve-3d;
+                position: absolute;
+                width: auto;
+                height: auto;
+                right: -1%;
+                bottom: 4%;
+            }
+        .lv:before, .lv:after {
+            position: absolute;
+            content: "";
+            top: 0;
+            -webkit-border-radius: 60px 60px 0 0;
+            -moz-border-radius: 60px 60px 0 0;
+            -ms-border-radius: 60px 60px 0 0;
+            -o-border-radius: 60px 60px 0 0;
+            border-radius: 60px 60px 0 0;
+            -webkit-transform: rotate(-45deg);
+            -moz-transform: rotate(-45deg);
+            -ms-transform: rotate(-45deg);
+            -o-transform: rotate(-45deg);
+            transform: rotate(-45deg);
+            -webkit-transform-origin: 0 100%;
+            -moz-transform-origin: 0 100%;
+            -ms-transform-origin: 0 100%;
+            -o-transform-origin: 0 100%;
+            transform-origin: 0 100%; }
+    .lv:after {
+        left: 0;
+        -webkit-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        transform: rotate(45deg);
+        -webkit-transform-origin: 100% 100%;
+        -moz-transform-origin: 100% 100%;
+        -ms-transform-origin: 100% 100%;
+        -o-transform-origin: 100% 100%;
+        transform-origin: 100% 100%; }
+
+        .lv-1:before, .lv-1:after {
+            left: 20px;
+            width: 20px;
+            height: 32px; }
+    .lv-1:after {
+        left: 0; }
+
+      .lv-2:before, .lv-2:after {
+          left: 15px;
+          width: 16px;
+          height: 25px; }
+      .lv-2:after {
+          left: 0; }
+
+      .lv-3:before, .lv-3:after {
+          left: 12px;
+          width: 12px;
+          height: 19px; }
+      .lv-3:after {
+          left: 0; }
+      .lv.a, .lv.f, .lv.k, .lv.p, .lv.u {
+        -webkit-animation-duration: 6s;
+        -moz-animation-duration: 6s;
+        -ms-animation-duration: 6s;
+        -o-animation-duration: 6s;
+        animation-duration: 6s; }
+      .lv.a:before, .lv.a:after, .lv.f:before, .lv.f:after, .lv.k:before, .lv.k:after, .lv.p:before, .lv.p:after, .lv.u:before, .lv.u:after {
+          background-color: #ff00d2; }
+
+    .lv.b, .lv.g, .lv.l, .lv.q, .lv.v {
+        -webkit-animation-duration: 7s;
+        -moz-animation-duration: 7s;
+        -ms-animation-duration: 7s;
+        -o-animation-duration: 7s;
+        animation-duration: 7s; }
+      .lv.b:before, .lv.b:after, .lv.g:before, .lv.g:after, .lv.l:before, .lv.l:after, .lv.q:before, .lv.q:after, .lv.v:before, .lv.v:after {
+          background-color: #ff9b00; }
+
+    .lv.c, .lv.h, .lv.m, .lv.r, .lv.w {
+        -webkit-animation-duration: 3s;
+        -moz-animation-duration: 3s;
+        -ms-animation-duration: 3s;
+        -o-animation-duration: 3s;
+        animation-duration: 3s; }
+      .lv.c:before, .lv.c:after, .lv.h:before, .lv.h:after, .lv.m:before, .lv.m:after, .lv.r:before, .lv.r:after, .lv.w:before, .lv.w:after {
+          background-color: #5bd800; }
+
+    .lv.d, .lv.i, .lv.n, .lv.s, .lv.x {
+        -webkit-animation-duration: 4s;
+        -moz-animation-duration: 4s;
+        -ms-animation-duration: 4s;
+        -o-animation-duration: 4s;
+        animation-duration: 4s; }
+      .lv.d:before, .lv.d:after, .lv.i:before, .lv.i:after, .lv.n:before, .lv.n:after, .lv.s:before, .lv.s:after, .lv.x:before, .lv.x:after {
+          background-color: #2e4ffc; }
+
+    .lv.e, .lv.j, .lv.o, .lv.t {
+        -webkit-animation-duration: 5s;
+        -moz-animation-duration: 5s;
+        -ms-animation-duration: 5s;
+        -o-animation-duration: 5s;
+        animation-duration: 5s; }
+      .lv.e:before, .lv.e:after, .lv.j:before, .lv.j:after, .lv.o:before, .lv.o:after, .lv.t:before, .lv.t:after {
+          background-color: #ff0000; }
+
+    .lv.f, .lv.g, .lv.h, .lv.i, .lv.j {
+        -webkit-animation-delay: 1s;
+        -moz-animation-delay: 1s;
+        -ms-animation-delay: 1s;
+        -o-animation-delay: 1s;
+        animation-delay: 1s;
+        -webkit-animation-name: aniTop;
+        -moz-animation-name: aniTop;
+        -ms-animation-name: aniTop;
+        -o-animation-name: aniTop;
+        animation-name: aniTop; }
+
+    .lv.k, .lv.l, .lv.m, .lv.n, .lv.o {
+        -webkit-animation-name: anilRight;
+        -moz-animation-name: anilRight;
+        -ms-animation-name: anilRight;
+        -o-animation-name: anilRight;
+        animation-name: anilRight; }
+
+    .lv.a, .lv.b, .lv.c, .lv.d, .lv.e {
+        -webkit-animation-name: anileft;
+        -moz-animation-name: anileft;
+        -ms-animation-name: anileft;
+        -o-animation-name: anileft;
+        animation-name: anileft; }
+
+    .lv.p, .lv.q, .lv.r, .lv.s, .lv.t {
+        -webkit-animation-delay: 2s;
+        -moz-animation-delay: 2s;
+        -ms-animation-delay: 2s;
+        -o-animation-delay: 2s;
+        animation-delay: 2s;
+        -webkit-animation-name: anileftTwo;
+        -moz-animation-name: anileftTwo;
+        -ms-animation-name: anileftTwo;
+        -o-animation-name: anileftTwo;
+        animation-name: anileftTwo; }
+
+    .lv.u, .lv.v, .lv.w, .lv.x {
+        -webkit-animation-delay: 3s;
+        -moz-animation-delay: 3s;
+        -ms-animation-delay: 3s;
+        -o-animation-delay: 3s;
+        animation-delay: 3s;
+        -webkit-animation-name: anileftThree;
+        -moz-animation-name: anileftThree;
+        -ms-animation-name: anileftThree;
+        -o-animation-name: anileftThree;
+        animation-name: anileftThree; }
+
+    @-webkit-keyframes anileft {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0);
+            transform: rotateX(45deg) rotateZ(180deg); }
+    100% {
+        transform: translate3D(0px, -300px, 0);
+        transform: rotateX(360deg) rotateZ(660deg);
+        opacity: 0;
+        right: 100%; } }
+    @-moz-keyframes anileft {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0);
+            transform: rotateX(45deg) rotateZ(180deg); }
+    100% {
+        transform: translate3D(0px, -300px, 0);
+        transform: rotateX(360deg) rotateZ(660deg);
+        opacity: 0;
+        right: 100%; } }
+    @-ms-keyframes anileft {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0);
+            transform: rotateX(45deg) rotateZ(180deg); }
+    100% {
+        transform: translate3D(0px, -300px, 0);
+        transform: rotateX(360deg) rotateZ(660deg);
+        opacity: 0;
+        right: 100%; } }
+    @keyframes anileft {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0);
+            transform: rotateX(45deg) rotateZ(180deg); }
+    100% {
+        transform: translate3D(0px, -300px, 0);
+        transform: rotateX(360deg) rotateZ(660deg);
+        opacity: 0;
+        right: 100%; } }
+    @-webkit-keyframes anileftTwo {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -200px, 0); } }
+    @-moz-keyframes anileftTwo {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -200px, 0); } }
+    @-ms-keyframes anileftTwo {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -200px, 0); } }
+    @keyframes anileftTwo {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -200px, 0); } }
+    @-webkit-keyframes anileftThree {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -400px, 0); } }
+    @-moz-keyframes anileftThree {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -400px, 0); } }
+    @-ms-keyframes anileftThree {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -400px, 0); } }
+    @keyframes anileftThree {
+        0% {
+            right: 0%;
+            transform: translate3D(0px, 0px, 0); }
+    100% {
+        right: 100%;
+        opacity: 0;
+        transform: translate3D(0px, -400px, 0); } }
+    @-webkit-keyframes aniTop {}
+    @-moz-keyframes aniTop {}
+    @-ms-keyframes aniTop {}
+    @keyframes aniTop {
+        0% {
+            right: 0%;
+            bottom: 0%;
+            transform: rotateX(90deg) rotateZ(180deg); }
+    50% {
+        right: 50%;
+        bottom: 40%;
+        opacity: 0.3;
+        transform: rotateX(360deg) rotateZ(660deg); }
+      70% {
+          bottom: 90%;
+          right: 70%;
+          opacity: 0.2; }
+      100% {
+          bottom: 100%;
+          right: 70%;
+          opacity: 0; } }
+    @-webkit-keyframes anilRight {
+        0% {
+            right: 0%;
+            bottom: 0%;
+            transform: rotateX(90deg) rotateZ(180deg); }
+    50% {
+        right: 20%;
+        bottom: 10%;
+        opacity: 0.3;
+        transform: rotateX(360deg) rotateZ(660deg); }
+      100% {
+          bottom: 80%;
+          right: 0%;
+          opacity: 0.1; } }
+    @-moz-keyframes anilRight {
+        0% {
+            right: 0%;
+            bottom: 0%;
+            transform: rotateX(90deg) rotateZ(180deg); }
+    50% {
+        right: 20%;
+        bottom: 10%;
+        opacity: 0.3;
+        transform: rotateX(360deg) rotateZ(660deg); }
+      100% {
+          bottom: 80%;
+          right: 0%;
+          opacity: 0.1; } }
+    @-ms-keyframes anilRight {
+        0% {
+            right: 0%;
+            bottom: 0%;
+            transform: rotateX(90deg) rotateZ(180deg); }
+    50% {
+        right: 20%;
+        bottom: 10%;
+        opacity: 0.3;
+        transform: rotateX(360deg) rotateZ(660deg); }
+      100% {
+          bottom: 80%;
+          right: 0%;
+          opacity: 0.1; } }
+    @keyframes anilRight {
+        0% {
+            right: 0%;
+            bottom: 0%;
+            transform: rotateX(90deg) rotateZ(180deg); }
+    50% {
+        right: 20%;
+        bottom: 10%;
+        opacity: 0.3;
+        transform: rotateX(360deg) rotateZ(660deg); }
+      100% {
+          bottom: 80%;
+          right: 0%;
+          opacity: 0.1; } }
+
+.live-msg-info {
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: inline-block;
+    position: absolute;
+    bottom: 46px;
+    right: 10%;
+    padding: 10px 26px;
+    color: white;
+    font-size: 2vh;
+    line-height: 1.5;
+    border-radius: 2px;
+    transition: all 0.7s ease-in;
+    z-index: 10000;
+    width: 80%;
+    box-sizing: border-box;
+    text-align: left;
+
+}
+
+.live-msg-info .banner-btn {
+    color: #f47727;
+}
+
+.live-msg-info  .close{
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-position: 22px -11px;
+    width: 11px ;
+    height: 13px ;
+    cursor: pointer;
+    background-image: url('../images/circle-icon.png');
+    display: inline-block;
+    z-index: 5;
+     -webkit-transition: all 0.3s ease-in;
+    -moz-transition: all 0.3s ease-in;
+    -o-transition: all 0.3s ease-in;
+    -ms-transition: all 0.3s ease-in;
+    transition: all 0.3s ease-in;
+}
+.live-msg-info  .close:hover {
+    opacity: 0.7;
+}
+.live-msg-info::before { 
+    content: "";
+    bottom: -7px;
+    right: 6px;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid rgba(0, 0, 0, 0.8);
+}
+.live-msg-show {
+    opacity: 1;
+     -webkit-transition: all 0.7s ease-in;
+    -moz-transition: all 0.7s ease-in;
+    -o-transition: all 0.7s ease-in;
+    -ms-transition: all 0.7s ease-in;
+    transition: all 0.7s ease-in;
+}
+/* */
+#container {
+    position: relative;
+}
+#unMute {
+    display: none;
+    font-size: 14px;
+    padding: 5px 12px;
+    background-color: white;
+    position: absolute;
+    top: 100px;
+    left: 100px;
+    text-align: left;
+    z-index: 10000;
+}
+.unmute-ico {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    background-image: url(../images/unmute.png);
+    background-repeat: no-repeat;
+    vertical-align: middle;
+    margin-right: 9px;
+}
+
+
+    .lv-profile {
+        width: 60px;
+        height: 60px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -30px;
+        margin-top: 3px; }
+      .lv-profile .profile-image {
+          width: 60px;
+          height: 60px;
+          border-radius: 30px;
+          border: 1px solid #333;
+          overflow: hidden;
+          background-size: cover;
+          position: absolute;
+          background-position: center;
+          background-color: #333;
+      }
+      .lv-profile span {
+          width: 50px;
+          height: 50px;
+          position: absolute;
+          border-radius: 100%;
+          border: 2px solid #f47727;
+          -webkit-animation-iteration-count: infinite;
+          animation-iteration-count: infinite;
+          -webkit-transform-style: preserve-3d;
+          transform-style: preserve-3d;
+          -webkit-animation-duration: 5s;
+          animation-duration: 5s;
+          -webkit-animation-name: liveProfile;
+          animation-name: liveProfile;
+          top: 5px;
+          left: 5px; }
+      .lv-profile .ani-1 {
+          -webkit-animation-delay: 0s;
+          animation-delay: 0s; }
+      .lv-profile .ani-2 {
+          -webkit-animation-delay: 1s;
+          animation-delay: 1s; }
+      .lv-profile .ani-3 {
+          -webkit-animation-delay: 2s;
+          animation-delay: 2s; }
+      .lv-profile .ani-4 {
+          -webkit-animation-delay: 3s;
+          animation-delay: 3s; }
+      .lv-profile .ani-5 {
+          -webkit-animation-delay: 4s;
+          animation-delay: 4s; }
+      .lv-profile h1 {
+          font-size: 16px;
+          text-align: center;
+          color: white;
+          text-shadow: 2px 0px 3px rgba(0, 0, 0, 0.54);
+          position: absolute;
+          bottom: -77px;
+          left: -9px;
+          width: 88px; }
+
+    @-webkit-keyframes liveProfile {
+        0% {
+            transform: scale(1); }
+    100% {
+        transform: scale(3);
+        opacity: 0; } }
+    @-moz-keyframes liveProfile {
+        0% {
+            transform: scale(1); }
+    100% {
+        transform: scale(3);
+        opacity: 0; } }
+    @-ms-keyframes liveProfile {
+        0% {
+            transform: scale(1); }
+    100% {
+        transform: scale(3);
+        opacity: 0; } }
+    @keyframes liveProfile {
+        0% {
+            transform: scale(1); }
+    100% {
+        transform: scale(3);
+        opacity: 0; } }
+    @media only screen and (max-width: 767px) {
+
+      @-webkit-keyframes liveProfile {
+          0% {
+              transform: scale(1); }
+      100% {
+          transform: scale(2);
+          opacity: 0; } }
+      @-moz-keyframes liveProfile {
+          0% {
+              transform: scale(1); }
+      100% {
+          transform: scale(2);
+          opacity: 0; } }
+      @-ms-keyframes liveProfile {
+          0% {
+              transform: scale(1); }
+      100% {
+          transform: scale(2);
+          opacity: 0; } }
+      @keyframes liveProfile {
+          0% {
+              transform: scale(1); }
+      100% {
+          transform: scale(2);
+          opacity: 0; } }
+      .lv-profile span {
+          border: 1px solid #f47727; }
+
+      .lv-profile h1 {
+          bottom: -39px;
+          left: -12px;
+          font-size: 14px; } }
+    @media only screen and (max-width: 500px) {
+        .lv-1:before, .lv-1:after {
+            left: 14px;
+            width: 14px;
+            height: 23px; }
+    .lv-1:after {
+        left: 0; }
+
+      .lv-2:before, .lv-2:after {
+          left: 11px;
+          width: 12px;
+          height: 20px; }
+      .lv-2:after {
+          left: 0; }
+
+      .lv-3:before, .lv-3:after {
+          left: 9px;
+          width: 9px;
+          height: 15px; }
+      .lv-3:after {
+          left: 0; } }
+
+
+    @media only screen and (min-width: 1280px) {
+      .open-app{
+        display: none;
+      }
+      .get-app{
+        display: block;
+      }
+    }
+   @media only screen and (max-width: 1280px) {
+      .open-app{
+        display: block;
+      }
+      .get-app{
+        display: none;
+      }
+   .lp-live {
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      }
+    }
+   @media only screen and (max-width: 900px) {
+      .lp-commsec {
+        width: 450px;
+        margin-left: -225px;
+        }
+
+    }
+   @media only screen and (max-width: 500px) {
+      .lp-commsec {
+          width: 100%;
+          margin-left: 0px;
+          bottom: 44px;
+          left: 0px;
+        }
+
+    }
+
+
+    /* EXTRA */
+    .lv-icon{
+        background-image: url(images/ring-live/live-ico.png);
+        display: inline-block;
+        height: 20px;
+        width: 20px;
+        margin-top: 3px;
+    }
+    .send-ico {
+        background-position: 0px -5px;
+    }
+ .gift-ico {
+      background-position: -23px 0px;
+  }
+  .volume-ico {
+      background-position: -45px 1px;
+  }
+  .mute-ico {
+      background-position: -66px 1px;
+  }
+  .vote-ico {
+      background-position: -89px 1px;
+      width: 23px;
+  }
+
+  #volumeBar {
+      position: relative;
+  }
+  
+  .vol-control {
+      position: absolute;
+      height: 10px;
+      width: 100px;
+      bottom: 65px;
+      left: -43px;
+      transform: rotate(-90deg);
+      -moz-transform: rotate(-90deg);
+      -webkit-transform: rotate(-90deg);
+  }
+  
+  .love-ico {
+      background-position: -113px 1px;
+  }
+
+    .app-info {
+        margin-top: 5px;
+    }
+    .play-live{
+        width: 72px;
+        height: 72px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -36px;
+        margin-left: -36px;
+        background-image: url(images/ring-live/play.png);
+        background-repeat: no-repeat;
+        display: none;
+    }
+    .loader-live{
+      width: 70px;
+      height: 14px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-top: -7px;
+      margin-left: -35px;
+      z-index: 1000;
+      display: none;
+  }
+  .loader { min-width: 70px; }
+  .loader .circle1, .loader .circle2, .loader .circle3 {
+  background-color: #f47727;
+  border-radius: 100%;
+  display: inline-block;
+  -webkit-animation: bouncedelay 1.4s infinite ease-in-out;
+  -moz-animation: bouncedelay 1.4s infinite ease-in-out;
+  -ms-animation: bouncedelay 1.4s infinite ease-in-out;
+  -o-animation: bouncedelay 1.4s infinite ease-in-out;
+  animation: bouncedelay 1.4s infinite ease-in-out;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -ms-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both; }
+  .loader .circle1 {
+  -webkit-animation-delay: -0.32s;
+  -moz-animation-delay: -0.32s;
+  -ms-animation-delay: -0.32s;
+  -o-animation-delay: -0.32s;
+  animation-delay: -0.32s; }
+  .loader .circle2 {
+  -webkit-animation-delay: -0.16s;
+  -moz-animation-delay: -0.16s;
+  -ms-animation-delay: -0.16s;
+  -o-animation-delay: -0.16s;
+  animation-delay: -0.16s; }
+  .wh14 {
+  width: 14px;
+  height: 14px;
+  }
+
+  @-webkit-keyframes bouncedelay {
+  0%, 80%, 100% {
+  -webkit-transform: scale(0); }
+  40% {
+  -webkit-transform: scale(1); } }
+  @-moz-keyframes bouncedelay {
+  0%, 80%, 100% {
+  -webkit-transform: scale(0); }
+  40% {
+  -webkit-transform: scale(1); } }
+  @-ms-keyframes bouncedelay {
+  0%, 80%, 100% {
+  -webkit-transform: scale(0); }
+  40% {
+  -webkit-transform: scale(1); } }
+  @keyframes bouncedelay {
+  0%, 80%, 100% {
+  -webkit-transform: scale(0); }
+  40% {
+  -webkit-transform: scale(1); } }
+    /* END LIVE ANIMATION */
+
+  /* Start Modal */
+
+  
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: black;
+    background-color: rgba(0, 0, 0, 0.4); }
+  .modal .content {
+      position: absolute;
+      background-color: #ffffff;
+      padding: 30px;
+      width: 600px;
+      height: 400px;
+      top: 50%;
+      left: 50%;
+      margin-top: -200px;
+      margin-left: -300px;
+      text-align: center;
+      box-sizing: border-box; }
+  .modal .close {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background-position: -120px -45px;
+      width: 15px;
+      height: 15px;
+      cursor: pointer; }
+    .modal .close:hover {
+        opacity: 0.6;
+        -webkit-transition: 0.3s ease;
+        -moz-transition: 0.3s ease;
+        -ms-transition: 0.3s ease;
+        -o-transition: 0.3s ease;
+        transition: 0.3s ease; }
+.modal .msg {
+    width: 100%;
+    font-size: 15px;
+    color: #7c7c7c;
+    text-align: left;
+    margin-top: 5px;
+    line-height: 1.8; }
+  .modal .title {
+      width: 100%;
+      color: #9e9e9e;
+      font-size: 16px;
+      margin-top: 54px; }
+.lvs { 
+    background-image: url(images/ring-live/live-ico.png);
+}
+
+.icon-content {
+    width: 100%;
+    margin-top: 40px; }
+  .icon-content a {
+      text-decoration: none;
+      display: inline-block;
+      margin-left: 44px; }
+    .icon-content a:hover h3 {
+        color: #f47727;
+        -webkit-transition: all 0.3s ease;
+        -moz-transition: all 0.3s ease;
+        -ms-transition: all 0.3s ease;
+        -o-transition: all 0.3s ease;
+        transition: all 0.3s ease; }
+.icon-content a:first-child {
+    margin-left: 0px; }
+    .icon-content a h3 {
+        font-size: 13px; }
+.icon-content a .tx-desktop {
+    color: #85a4eb; }
+    .icon-content a .tx-windows {
+        color: #ee8d8c; }
+.icon-content a .tx-android {
+    color: #9ce0ac; }
+    .icon-content a .tx-iphone {
+        color: #b7c5cd; }
+.icon-content i {
+    width: 56px;
+    height: 56px;
+    display: inline-block; }
+  .icon-content .desktop {
+      background-position: -2px -48px; }
+  .icon-content .windows {
+      background-position: -61px -48px; }
+  .icon-content .android {
+      background-position: -2px -105px; }
+  .icon-content .iphone {
+      background-position: -61px -105px; }
+  /* END Modal */
+
+  .audio-only-view {
+      display: none;
+  }
+
+</style>
+
+<body class="bg-image profile-image" style="background-image:url('##IMAGE_SERVER##/${img}')">
+  <!--   <div class="main-wrapper"> -->
+        <div class="bgopacity">
+            <div class="content-wrapper">
+               <div class="loader loader-live">
+                   <div class="circle1 wh14"></div>
+                   <div class="circle2 wh14"></div>
+                   <div class="circle3 wh14"></div>
+               </div>
+
+               <div class="header-bg off-for-desktop t0">
+                        <div class="lp-up profile-image" style="background-image:url('##IMAGE_SERVER##/${img}')"></div>
+                        <div class="lp-uinfo">
+                            <p class="uname">${uname}</p>
+                        </div>
+                    </div>
+                <!-- Start LIVE ENDED  area-->
+                <div class="off-for-mobile" id="liveOffline" style="display:none;">
+                    <div class="livestatus livepad"></div>
+                    <div class="user-picture cp profile-image" onclick="goToApp();" style="background-image:url('##IMAGE_SERVER##/${img}')"></div>
+                    <div class="btext livepads cp uname" onclick="goToApp();">${uname}</div>
+                    <div class="timestatus livepads">
+                        <img src="images/ring-live/location.png" width="16px" height="16px">
+                        <span class="country">${country}</span>
+                    </div>
+                    <div class="btext livepads viewers">${viewers}</div>
+                    <div class="timestatus livepads">Viewers</div>
+                    <div class="app-info d-all off-for-mobile">
+                        <div class="ring-color livepads">GET APP</div>
+                        <a href="https://www.ringid.com/download.html" target="_blank">
+                            <img title="Desktop" width="30px" height="30px" src="images/ring-live/thumb-desktop-c.png">
+                        </a>
+                        <a href="//www.microsoft.com/store/apps/9WZDNCRCV6NB" target="_blank" title="Windows App">
+                            <img width="30px" height="30px" src="images/ring-live/thumb-windows-c.png">
+                        </a>
+                        <a href="//play.google.com/store/apps/details?id=com.ringid.ring" target="_blank" title="Android App">
+                            <img width="30px" height="30px" src="images/ring-live/thumb-android-c.png">
+                        </a>
+                        <a href="//itunes.apple.com/us/app/ringid/id925330759?mt=8" target="_blank" title="iPhone App">
+                            <img width="30px" height="30px" src="images/ring-live/thumb-iphone-c.png">
+                        </a>
+                        <a href="https://www.ringid.com" target="_blank" title="ringID Website">
+                            <img width="30px" height="30px" src="images/ring-live/thumb-web-c.png">
+                        </a>
+                    </div>
+                </div>
+                <!-- End LIVE ENDED  area-->
+
+
+
+                <!-- Start LIVE Video Share Area  -->
+
+                 <div  class="lp-live off-for-desktop" id="liveOnline">
+                     <div class="poster">
+                         <img id="posterImage" />
+                         <!-- <video id="videoElem" autoplay width="100%" height="100%"></video> -->
+                           
+                        <div id="container">
+
+                             <div id="unMute">
+                                <i class="unmute-ico"></i>TAB TO UNMUTE
+                            </div>
+                         
+                            <!-- live-msg-show : class will be added with live-msg-info div -->
+                            <div class="live-msg-info">
+                                <span class="close"></span>
+                                For enjoying more better and smoother live experience along with other exciting features, 
+                                <a href="javascript:void(0)" onclick="goToApp();" class="banner-btn">try ringID</a> app version.
+                            </div>
+                        </div>
+                     </div>
+
+                     <div class="play-live"></div>
+
+                    <!-- START LIVE ANIMATION -->
+
+                    <div class="live-wrap">
+
+                        <span class="lv lv-1 a"></span>
+                        <span class="lv lv-2 b"></span>
+                        <span class="lv lv-3 c"></span>
+                        <span class="lv lv-1 d"></span>
+                        <span class="lv lv-2 e"></span>
+                        <span class="lv lv-3 f"></span>
+                        <span class="lv lv-1 g"></span>
+                        <span class="lv lv-2 h"></span>
+                        <span class="lv lv-3 i"></span>
+                        <span class="lv lv-1 j"></span>
+                        <span class="lv lv-2 k"></span>
+                        <span class="lv lv-3 l"></span>
+                        <span class="lv lv-1 m"></span>
+                        <span class="lv lv-2 n"></span>
+                        <span class="lv lv-3 o"></span>
+
+                        <span class="lv lv-1 p"></span>
+                        <span class="lv lv-2 q"></span>
+                        <span class="lv lv-3 r"></span>
+
+                        <span class="lv lv-1 s"></span>
+                        <span class="lv lv-2 t"></span>
+                        <span class="lv lv-3 u"></span>
+
+                        <span class="lv lv-1 v"></span>
+                        <span class="lv lv-2 w"></span>
+                        <span class="lv lv-3 x"></span>
+
+                        <div class="lv-profile audio-only-view">
+                            <span class="ani-1"></span>
+                            <span class="ani-2"></span>
+                            <span class="ani-3"></span>
+                            <span class="ani-4"></span>
+                            <span class="ani-5"></span>
+                                <div class="profile-image" style="background-image:url('https://imagesres.ringid.com/${img}')"> </div>
+                            <h1>Camera Off</h1>
+                        </div>
+
+                    </div>
+
+                    <!-- END LIVE ANIMATION -->
+
+
+                    <!--  Modal -->
+                    <div id="modal" class="modal">
+
+                        <!-- Modal content -->
+                        <div class="content">
+                            <span class="close lvs" onclick="closeModal();"></span>
+
+                            <div class="msg"> 
+                                Sorry, this feature is not available in ringID web version. Either use ringID mobile apps or desktop version along with other stunning features including video call, media cloud and many mores.
+                            </div>
+                            <div class="title">
+                                Currently we are available on
+                            </div>
+                            <div class="icon-content">
+                                <a href="https://www.ringid.com/download.html">
+                                    <i class="desktop lvs"></i>
+                                    <h3 class="tx-desktop">Desktop</h3>
+                                </a>
+                                <a href="//www.microsoft.com/store/apps/9WZDNCRCV6NB">
+                                    <i class="windows lvs"></i>
+                                    <h3 class="tx-windows">Windows</h3>
+                                </a>
+                                <a href="//play.google.com/store/apps/details?id=com.ringid.ring">
+                                    <i class="android lvs"></i>
+                                    <h3 class="tx-android">Android</h3>
+                                </a>
+                                <a href="//itunes.apple.com/us/app/ringid/id925330759?mt=8">
+                                    <i class="iphone lvs"></i>
+                                    <h3 class="tx-iphone">iPhone</h3>
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- END MODAL -->
+
+
+                </div>
+
+                <!-- End LIVE Video Share Area  -->
+
+
+
+                <div class="header-bg off-for-desktop b0">
+                    <a href="https://www.ringid.com" class="logo"><img src="images/ring-live/brand_name.png"></a>
+
+
+                  <div class="lp-commsec">
+                         <div class="lp-csib" onclick="showModal();" title="Comment">
+                            <span class="cmnico"><i class="send-ico lv-icon"></i></span>
+                            <div class="say-hello">Say hello....</div>
+                         </div>
+                         <div class="lp-gift" onclick="showModal();" title="Gift">
+                              <i class="gift-ico lv-icon"></i>
+                          </div>
+                          <div class="lp-gift" title="Sound">
+                              <i class="volume-ico lv-icon" id="volumeBar">
+                                <input class="vol-control" type="range" min="0" max="100" step="1" 
+                                    onchange="changeVolume(this.value)"></input>
+                              </i>
+                              <!-- <i class="mute-ico lv-icon"></i> -->
+                          </div>
+                          <div class="lp-gift" onclick="showModal();" title="Vote">
+                              <i class="vote-ico lv-icon"></i>
+                          </div>
+                          <div class="lp-gift" onclick="showModal();" title="Like">
+                              <i class="love-ico lv-icon"></i>
+                          </div>
+                    </div>
+
+
+
+                    <a href="javascript:void(0)" onclick="goToApp();" class="embed-btn right open-app">Open In App</a>
+
+
+                      <div class="action-txt-left get-app right">
+                        <div class="embed-btn" id="jd-download">GET APP<i class="arrow-down"></i></div>
+                        <div class="appdownload" id="jd-content">
+                            <h1><span class="ring-color">ringID! </span>More than a Social network</h1>
+                            <ul class="getapp">
+                                <li><a href="https://www.ringid.com/download.html" target="_blank"><img title="Desktop" width="30px" height="30px" src="images/ring-live/thumb-desktop-c.png"></a></li>
+                                <li><a href="//www.microsoft.com/store/apps/9WZDNCRCV6NB" target="_blank" title="Windows App"><img width="30px" height="30px" src="images/ring-live/thumb-windows-c.png"></a></li>
+                                <li><a href="//play.google.com/store/apps/details?id=com.ringid.ring" target="_blank" title="Android App"><img width="30px" height="30px" src="images/ring-live/thumb-android-c.png"></a></li>
+                                <li><a href="//itunes.apple.com/us/app/ringid/id925330759?mt=8" target="_blank" title="iPhone App"><img width="30px" height="30px" src="images/ring-live/thumb-iphone-c.png"></a></li>
+                                <li><a href="https://www.ringid.com" target="_blank" title="ringID Website"><img width="30px" height="30px" src="images/ring-live/thumb-web-c.png"></a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+<!--     </div> -->
+
+<script src="dist/player.min.js"></script>
+<script src="design_script/live.player.js"></script>
+
+</body>
+
+</html>
