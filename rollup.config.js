@@ -8,17 +8,12 @@ import uglify from 'rollup-plugin-uglify';
 
 
 export default {
-    entry: 'src/player.js',
-    dest: 'dist/player.min.js',
-    format: 'iife',
-    moduleName: 'RingPlayer',
+    entry: 'src/opus-to-pcm.js',
+    dest: 'dist/opus_to_pcm.js',
+    format: 'amd',
     sourceMap: false, //inline
     plugins: [
-        eslint({
-            exclude: [
-                'src/styles/**',
-            ]
-        }),
+        eslint(),
         babel({
             exclude: 'node_modules/**',
         }),

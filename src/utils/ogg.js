@@ -2,9 +2,14 @@ import { appendByteArray } from './utils.js';
 export default class Ogg {
     constructor(orgSampleRate, channel) {
         this.orgSampleRate = orgSampleRate;
+        this.outSampleRate = 0;
         this.channel = channel;
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         this.init();
+    }
+
+    getSampleRate() {
+        return this.outSampleRate;
     }
 
     init() {
@@ -107,6 +112,9 @@ export default class Ogg {
                     result = [],
                     pcmFloat;
 
+                if (!this.outSampleRate) {
+                    this.outSampleRate = audioBuffer.sampleRate;
+                }
                 if (this.channel == 1) {
                     pcmFloat = audioBuffer.getChannelData(0);
                 } else {
@@ -121,8 +129,8 @@ export default class Ogg {
         let audioData,
             result,
             length,
-            pcmData,
-            offset = 0
+            pcmFloat,
+            offset = 0,
             i=0,
             j=0;
 
@@ -134,7 +142,7 @@ export default class Ogg {
         length = result[0].length;
         pcmFloat = new Float32Array(this.channel * length);
         while(length > i) {
-           for(j=0; j<this.channel; j++) {
+            for(j=0; j<this.channel; j++) {
                 pcmFloat[offset++] = result[j][i];
             }
             i++; 

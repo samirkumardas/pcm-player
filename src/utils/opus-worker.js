@@ -12,6 +12,10 @@ export default class OpusWorker {
         });
     }
 
+    getSampleRate() {
+        return 24000;
+    }
+
     decode(packet) {
         let workerData = {
             type: 'decode',
