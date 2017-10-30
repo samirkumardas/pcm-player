@@ -1,10 +1,10 @@
 import { appendByteArray } from './utils.js';
 export default class Ogg {
-    constructor(orgSampleRate, channel) {
-        this.orgSampleRate = orgSampleRate;
+    constructor(channel) {
         this.outSampleRate = 0;
         this.channel = channel;
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        this.resolver = null;
         this.init();
     }
 
@@ -13,14 +13,23 @@ export default class Ogg {
     }
 
     init() {
+        let header,
+            page;
+
+        this.oggHeader = new Uint8Array();
         this.pageIndex = 0;
-        this.serial = Math.floor(Math.random() * Math.pow(2,32));
+        this.serial = Math.ceil(Math.random() * Math.pow(2,32));
         this.initChecksumTable();
-        let idHeader = this.getIDHeader();
-        let commentHeader = this.getCommentHeader();
-        let idPage = this.getPage(idHeader, 2);  // headerType of ID header is 2 i.e beginning of stream
-        let commentPage = this.getPage(commentHeader, 0); // headerType of comment header is 0
-        this.oggHeader = appendByteArray(idPage, commentPage);
+
+        /* ID Header */
+        header = this.getIDHeader();
+        page = this.getPage(header, 2);  // headerType of ID header is 2 i.e beginning of stream
+        this.oggHeader = appendByteArray(this.oggHeader, page);
+
+        /* comment Header */
+        header = this.getCommentHeader();
+        page = this.getPage(header, 0);  // headerType of comment header is 0
+        this.oggHeader = appendByteArray(this.oggHeader, page);
     }
 
     getIDHeader() {
@@ -31,7 +40,7 @@ export default class Ogg {
         dv.setUint8( 8, 1, true ); // Version
         dv.setUint8( 9, this.channel, true ); // Channel count
         dv.setUint16( 10, 0, true ); // pre-skip, don't need to skip any value
-        dv.setUint32( 12, this.orgSampleRate, true ); // original sample rate
+        dv.setUint32( 12, 8000, true ); // original sample rate, any valid sample e.g 8000
         dv.setUint16( 16, 0, true ); // output gain
         dv.setUint8( 18, 0, true ); // channel map 0 = mono or stereo
         return data;
@@ -62,7 +71,8 @@ export default class Ogg {
         pageDV.setUint32( 0, 1399285583, true); // page headers starts with 'OggS'
         pageDV.setUint8( 4, 0, true ); // Version
         pageDV.setUint8( 5, headerType, true ); // 1 = continuation, 2 = beginning of stream, 4 = end of stream
-        pageDV.setUint32( 6, -1, true ); // granuale position -1 i.e single packet per page. granuable position is 8 bytes but 4bytes for us.
+        pageDV.setUint32( 6, -1, true ); // granuale position -1 i.e single packet per page. storing into bytes.
+        pageDV.setUint32( 10, -1, true );
         pageDV.setUint32( 14, this.serial, true ); // Bitstream serial number
         pageDV.setUint32( 18, this.pageIndex++, true ); // Page sequence number
         pageDV.setUint8( 26, 1, true ); // Number of segments in page, giving always 1 segment
@@ -107,10 +117,7 @@ export default class Ogg {
         let ogg = this.getOGG(packet);
         return new Promise((resolve) => {
             this.audioCtx.decodeAudioData(ogg.buffer, (audioBuffer) => {
-                let audioData,
-                    i,
-                    result = [],
-                    pcmFloat;
+                let pcmFloat;
 
                 if (!this.outSampleRate) {
                     this.outSampleRate = audioBuffer.sampleRate;
@@ -120,7 +127,7 @@ export default class Ogg {
                 } else {
                     pcmFloat = this.getMergedPCMData(audioBuffer);
                 } 
-                resolve(result);
+                resolve(pcmFloat);
             });
         });
     }
@@ -153,5 +160,6 @@ export default class Ogg {
     destroy() {
         this.oggHeader = null;
         this.audioCtx = null;
+        this.checksumTable = null;
     }
 }

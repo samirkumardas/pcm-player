@@ -21,7 +21,7 @@ export default class OpusWorker {
             type: 'decode',
             buffer: packet
         };
-        this.decoderPublisher.postMessage(workerData);
+        this.worker.postMessage(workerData);
         return new Promise((resolve) => {
             this.resolver = resolve;
         });

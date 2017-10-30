@@ -9,21 +9,23 @@
     It should play audio if everying went well!
 </div>
 <script>
-   var orgSampleRate = 8000,
+ window.onload = function() {
+    var orgSampleRate = 8000,
        channels = 1,
-       configFlag = false;
+       configFlag = false,
+       socketURL = 'ws://localhost:8080';
 
-   var opsuToPCM = new OpusToPCM({
-        orgSampleRate: orgSampleRate,
+   var decoder = new Decoder.OpusToPCM({
         channels: channels
    });
 
    var player = new PCMPlayer();  
 
-   var ws = new WebSocket(this.url);
+   var ws = new WebSocket(socketURL);
+       ws.binaryType = 'arraybuffer';
        ws.addEventListener('message',function(event) {
             var data = new Uint8Array(event.data);
-            opsuToPCM.decode(data).then(function(pcmData) {
+            decoder.decode(data).then(function(pcmData) {
                 
                 /* 
                    Sample rate in opus is not fixed. 
@@ -32,7 +34,7 @@
                    so lets set sampelRate here returned by decoder.
                 */
                 if (!configFlag) {
-                    var samppleRate = opsuToPCM.getSampleRate();
+                    var samppleRate = decoder.getSampleRate();
                     player.setConfig(samppleRate, channels);
                     configFlag = true;
                 }
@@ -40,8 +42,9 @@
                 player.feed(pcmData);
             });
        });
+ }   
 </script>
-<script type="text/javascript" src="dist/opus-to-pcm.js"></script>
-<script type="text/javascript" src="player/pcm-player.js"></script>
+<script type="text/javascript" src="../dist/opus_to_pcm.js"></script>
+<script type="text/javascript" src="player/pcm_player.js"></script>
 </body>
 </html>

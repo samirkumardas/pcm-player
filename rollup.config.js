@@ -10,7 +10,8 @@ import uglify from 'rollup-plugin-uglify';
 export default {
     entry: 'src/opus-to-pcm.js',
     dest: 'dist/opus_to_pcm.js',
-    format: 'amd',
+    format: 'iife',
+    moduleName: 'Decoder',
     sourceMap: false, //inline
     plugins: [
         eslint(),

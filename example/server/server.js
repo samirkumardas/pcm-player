@@ -2,29 +2,56 @@ const WebSocket = require('ws');
 const fs = require('fs');
 
 const opusPackets = './raw_opus/';
-const interval = 0;
-const packets;
-const wss = new WebSocket.Server({ port: 8080 });
+let packets = [],
+    source = [],
+    interval = 0,
+    count = 0,
+    wss;
 
 fs.readdir(opusPackets, (err, files) => {
-    packets = files;
+    files.forEach(function(file) {
+        fs.readFile(opusPackets+file, (err, data) => {
+            if (err) throw err;
+            source.push(data);
+            count++;
+            if (files.length == count) {
+                packets = source.slice();
+                openSocket();
+            }
+        });
+    });
 });
 
-wss.on('connection', function connection(ws) {
-      console.log('Socket connected. sending data...');
-      setInterval(function() {
-        sendPacket(ws);
-      }, 50);
-});
 
-function sendPacket(ws) {
-    const packet;
-    if (typeof packet == undefined) return;
-    if (packets.length ==0 ){
+function openSocket() {
+  wss = new WebSocket.Server({ port: 8080 });
+  console.log('Server ready...');
+  wss.on('connection', function connection(ws) {
+        console.log('Socket connected. sending data...');
+        if (interval) {
+            clearInterval(interval);
+        }
+        interval = setInterval(function() {
+          sendPacket();
+        }, 10);
+  });
+}
+
+function sendPacket() {
+    let packet;
+    if (packets.length == 0 && interval){
        clearInterval(interval);
+       packets = source.slice();
        return;
     }
     
-    packet = packet.shift();
-    ws.send(packet);
+    packet = packets.shift();
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+          client.send(packet);
+          if (packets.length % 100 == 0){
+              console.log(`Remainging packets ${packets.length}`);
+          }
+      }
+    });
 }
