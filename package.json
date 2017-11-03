@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.ipvisionsoft.com:ipvision-web/liveplayer.git"
+    "url": "git@github.com:samirkumardas/opus-to-pcm.git"
   },
   "author": "Samir Das",
   "devDependencies": {
