@@ -1,8 +1,8 @@
 {
-  "name": "opus-to-pcm",
+  "name": "pcm-player",
   "version": "0.1.0",
-  "description": "Decode raw opus packet to pcm without using any external library",
-  "main": "dist/opus_to_pcm.js",
+  "description": "A minimalist javascript audio player for PCM streaming audio",
+  "main": "dist/pcm_player.js",
   "scripts": {
     "build": "rollup -c",
     "pro": "NODE_ENV=production rollup -c",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:samirkumardas/opus-to-pcm.git"
+    "url": "git@github.com:samirkumardas/pcm-player.git"
   },
   "author": "Samir Das",
   "devDependencies": {
