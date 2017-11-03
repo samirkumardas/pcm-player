@@ -6,13 +6,14 @@ import eslint from 'rollup-plugin-eslint';
 import replace from 'rollup-plugin-replace';
 import uglify from 'rollup-plugin-uglify';
 
-
 export default {
-    entry: 'src/opus-to-pcm.js',
-    dest: 'dist/opus_to_pcm.js',
-    format: 'iife',
-    moduleName: 'Decoder',
-    sourceMap: false, //inline
+    input: 'src/opus-to-pcm.js',
+    output: {
+        file: 'dist/opus_to_pcm.js',
+        format: 'iife',
+        name: 'Decoder',
+        sourcemap: false, //inline
+    },
     plugins: [
         eslint(),
         babel({

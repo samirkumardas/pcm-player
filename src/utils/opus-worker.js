@@ -1,7 +1,8 @@
-export default class OpusWorker {
+import Event from './event.js';
+export default class OpusWorker extends Event {
     constructor(channels) {
+        super('worker');
         this.worker = new Worker('libopus/opus.min.js');
-        this.resolver = null;
         this.worker.addEventListener('message', this.onMessage.bind(this));
         this.worker.postMessage({
             type: 'init',
@@ -22,18 +23,14 @@ export default class OpusWorker {
             buffer: packet
         };
         this.worker.postMessage(workerData);
-        return new Promise((resolve) => {
-            this.resolver = resolve;
-        });
     }
 
     onMessage(event) {
         let data = event.data;
-        if (this.resolver) {
-            this.resolver(data.buffer);
-        }
+        this.dispatch('data', data.buffer);
     }
     destroy() {
         this.worker = null;
+        this.offAll();
     }
 }

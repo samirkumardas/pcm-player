@@ -1,15 +1,17 @@
+import Event from './event.js';
 import { appendByteArray } from './utils.js';
-export default class Ogg {
+export default class Ogg extends Event {
     constructor(channel) {
-        this.outSampleRate = 0;
+        super('ogg');
         this.channel = channel;
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        this.resolver = null;
+        this.queue = [];
+        this.flushLimit = 20; /* the larger flush limit, the lesser clicking noise */
         this.init();
     }
 
     getSampleRate() {
-        return this.outSampleRate;
+        return this.audioCtx.sampleRate;
     }
 
     init() {
@@ -42,19 +44,18 @@ export default class Ogg {
         dv.setUint16( 10, 0, true ); // pre-skip, don't need to skip any value
         dv.setUint32( 12, 8000, true ); // original sample rate, any valid sample e.g 8000
         dv.setUint16( 16, 0, true ); // output gain
-        dv.setUint8( 18, 0, true ); // channel map 0 = mono or stereo
+        dv.setUint8( 18, 0, true ); // channel map 0 = one stream: mono or stereo
         return data;
     }
 
     getCommentHeader() {
-        let data = new Uint8Array(24),
+        let data = new Uint8Array(20),
             dv = new DataView(data.buffer);
         dv.setUint32( 0, 1937076303, true ); // Magic Signature 'Opus'
         dv.setUint32( 4, 1936154964, true ); // Magic Signature 'Tags'
-        dv.setUint32( 8, 8, true ); // Vendor Length
-        dv.setUint32( 12, 1919512167, true ); // Vendor name 'ring'
-        dv.setUint32( 16, 1818850917, true ); // Vendor name 'live'
-        dv.setUint32( 20, 0, true ); // User Comment List Length
+        dv.setUint32( 8, 4, true ); // Vendor Length
+        dv.setUint32( 12, 1633837924, true ); // Vendor name 'abcd'
+        dv.setUint32( 16, 0, true ); // User Comment List Length
         return data;
     }
 
@@ -84,12 +85,19 @@ export default class Ogg {
         return page;
     }
 
-    getOGG(packet) {
+    getOGG() {
         let oggData = this.oggHeader,
-            segmentData;
+            packet,
+            segmentData,
+            headerType;
 
-        segmentData = this.getPage(packet, 4); /* headerType - end of stream i.e 4 */
-        oggData = appendByteArray(oggData, segmentData);
+        while (this.queue.length) {
+            packet = this.queue.shift();
+            headerType = this.queue.length == 0 ? 4 : 0; // for last packet, header type should be end of stream
+            segmentData = this.getPage(packet, headerType);
+            oggData = appendByteArray(oggData, segmentData);
+        }
+
         this.pageIndex = 2; /* reseting pageIndex to 2 so we can re-use same header */
         return oggData;
     }
@@ -114,27 +122,28 @@ export default class Ogg {
     }
 
     decode(packet) {
-        let ogg = this.getOGG(packet);
-        return new Promise((resolve) => {
-            this.audioCtx.decodeAudioData(ogg.buffer, (audioBuffer) => {
-                let pcmFloat;
+        this.queue.push(packet);
+        if (this.queue.length >= this.flushLimit) {
+            this.process();
+        }
+    }
 
-                if (!this.outSampleRate) {
-                    this.outSampleRate = audioBuffer.sampleRate;
-                }
-                if (this.channel == 1) {
-                    pcmFloat = audioBuffer.getChannelData(0);
-                } else {
-                    pcmFloat = this.getMergedPCMData(audioBuffer);
-                } 
-                resolve(pcmFloat);
-            });
+    process() {
+        let ogg = this.getOGG();
+        this.audioCtx.decodeAudioData(ogg.buffer, (audioBuffer) => {
+            let pcmFloat;
+            if (this.channel == 1) {
+                pcmFloat = audioBuffer.getChannelData(0);
+            } else {
+                pcmFloat = this.getMergedPCMData(audioBuffer);
+            }
+            this.dispatch('data', pcmFloat); 
         });
     }
 
     getMergedPCMData(audioBuffer) {
         let audioData,
-            result,
+            result = [],
             length,
             pcmFloat,
             offset = 0,
@@ -148,6 +157,7 @@ export default class Ogg {
 
         length = result[0].length;
         pcmFloat = new Float32Array(this.channel * length);
+        i = 0;
         while(length > i) {
             for(j=0; j<this.channel; j++) {
                 pcmFloat[offset++] = result[j][i];
@@ -161,5 +171,6 @@ export default class Ogg {
         this.oggHeader = null;
         this.audioCtx = null;
         this.checksumTable = null;
+        this.offAll();
     }
 }
