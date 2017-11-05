@@ -1,25 +1,19 @@
 const WebSocket = require('ws');
 const fs = require('fs');
 
-const opusPackets = './raw_opus/';
-let packets = [],
-    source = [],
-    interval = 0,
-    count = 0,
+const pcm_file = './16bit-8000.raw';
+let interval = 0,
+    sampleRate = 8000,
+    channels = 2,
+    bytesChunk = (sampleRate * channels),
+    offset = 0,
+    pcmData,
     wss;
 
-fs.readdir(opusPackets, (err, files) => {
-    files.forEach(function(file) {
-        fs.readFile(opusPackets+file, (err, data) => {
-            if (err) throw err;
-            source.push(data);
-            count++;
-            if (files.length == count) {
-                packets = source.slice();
-                openSocket();
-            }
-        });
-    });
+fs.readFile(pcm_file, (err, data) => {
+    if (err) throw err;
+    pcmData = data;
+    openSocket();
 });
 
 
@@ -32,26 +26,24 @@ function openSocket() {
             clearInterval(interval);
         }
         interval = setInterval(function() {
-          sendPacket();
-        }, 10);
+          sendData();
+        }, 500);
   });
 }
 
-function sendPacket() {
-    let packet;
-    if (packets.length == 0 && interval){
+function sendData() {
+    let payload;
+    if (offset >= pcmData.length) {
        clearInterval(interval);
-       packets = source.slice();
+       offset = 0;
        return;
     }
     
-    packet = packets.shift();
+    payload = pcmData.subarray(offset, (offset + bytesChunk));
+    offset += bytesChunk;
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-          client.send(packet);
-          if (packets.length % 100 == 0){
-              console.log(`Remainging packets ${packets.length}`);
-          }
+          client.send(payload);
       }
     });
 }

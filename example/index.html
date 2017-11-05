@@ -7,32 +7,25 @@
 <body>
 <div id="container" style="width: 400px; margin: 0 auto;">
     <h2>It should play audio if everying went well!</h2>
-      <p>Yea! recoreded audio is not in good qualtity though! </p>
 </div>
 <script>
  window.onload = function() {
-    var channels = 1,
-        socketURL = 'ws://localhost:8080';
-
-   var decoder = new Decoder.OpusToPCM({
-        channels: channels
+   var socketURL = 'ws://localhost:8080';
+   var player = new PCMPlayer({
+        encoding: '16bitInt',
+        channels: 2,
+        sampleRate: 8000,
+        flushingTime: 1000
    });
-
-   decoder.on('decode', function(pcmData) {
-        player.feed(pcmData);
-   });
-
-   var player = new PCMPlayer(channels, decoder.getSampleRate());
 
    var ws = new WebSocket(socketURL);
        ws.binaryType = 'arraybuffer';
        ws.addEventListener('message',function(event) {
             var data = new Uint8Array(event.data);
-            decoder.decode(data);
+            player.feed(data);
        });
  }   
 </script>
-<script type="text/javascript" src="../dist/opus_to_pcm.js"></script>
-<script type="text/javascript" src="player/pcm_player.js"></script>
+<script type="text/javascript" src="../pcm-player.js"></script>
 </body>
 </html>
