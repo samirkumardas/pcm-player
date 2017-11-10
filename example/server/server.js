@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const fs = require('fs');
 
-const pcm_file = './16bit-8000.raw';
+const pcm_file = './32bit (float)-8000.raw';
 let interval = 0,
     sampleRate = 8000,
     channels = 2,
