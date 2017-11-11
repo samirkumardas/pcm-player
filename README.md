@@ -35,7 +35,7 @@ Decoder fire an event *decode* whenever it completes decoding. Usually it decode
 | Name        | Parameter           | Remark  |
 | ------------- |:-------------:| -----:|
 | feed      |  raw PCM data | Usually get from ajax or websocket
-| volume      | decimal value 0.1 to 1      |  For controlling volume of the player  |
+| volume      | decimal value 0 to 1      |  For controlling volume of the player  |
 | destroy | -      |    Destroy the player instance and release the resources |
   
  **Compatibility**
