@@ -81,6 +81,8 @@ PCMPlayer.prototype.destroy = function() {
         clearInterval(this.interval);
     }
     this.samples = null;
+    this.audioCtx.close();
+    this.audioCtx = null;
 };
 
 PCMPlayer.prototype.flush = function() {
