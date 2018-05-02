@@ -55,8 +55,23 @@ Decoder fire an event *decode* whenever it completes decoding. Usually it decode
 **How to run example?**
 
 An example with simple node server script is available that include some raw pcm data that will be served by websocket and at the client end, it will be played through PCM player. For running the example, first run the node server by following command:
+(I am assuming you are on project directory i.e pcm-player)
+
+*cd example/server*
 
 *node server.js*
 
 then, visit *example/index.html* page through any webserver.
+
+If you don't have any web server, you can do following:
+
+(I am assuming you are on project directory i.e pcm-player)
+
+*npm install http-server -g*
+
+then run following command
+
+*http-server*
+
+Finally visit example page using URL  http://192.168.0.105:8081/example/index.html OR URL suggested by http-server
 
