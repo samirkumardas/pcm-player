@@ -10,7 +10,7 @@ Available options are:
 
 *encoding* - possible values 8bitInt / 16bitInt / 32bitInt / 32bitFloat default: 16bitInt
 
-*channels* - no of channels in opus data
+*channels* - no of channels in PCM data
 
 *sampleRate* - sample rate of the PCM data
 
