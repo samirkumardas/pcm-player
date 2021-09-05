@@ -42,6 +42,11 @@ PCMPlayer.prototype.getTypedArray = function () {
 
 PCMPlayer.prototype.createContext = function() {
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // context needs to be resumed on iOS and Safari (or it will stay in "suspended" state)
+    this.audioCtx.resume();
+    this.audioCtx.onstatechange = () => console.log(this.audioCtx.state);   // if you want to see "Running" state in console and be happy about it
+    
     this.gainNode = this.audioCtx.createGain();
     this.gainNode.gain.value = 1;
     this.gainNode.connect(this.audioCtx.destination);
